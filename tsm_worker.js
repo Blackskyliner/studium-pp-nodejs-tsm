@@ -1,14 +1,99 @@
 var util = require('util');
 var _    = require('lodash-node');
 
+var Inf = Infinity;
+
+/**
+ * This Parser can read in any .tsp file and output an graph for it.
+ *
+ * @param tspData
+ * @returns {{parse: Function, getGraph: Function}}
+ * @constructor
+ */
+function TSPParser(tspData)
+{
+    var graph = [];
+    var metaData = {};
+
+    function parse()
+    {
+        if((tspData.indexOf('EOF') <= -1 || tspData.indexOf('NODE_COORD_SECTION') <= -1))
+            throw "Could not parse tsp data. Invalid format.";
+
+        var nodes = [];
+        var data  = tspData.split('\n');
+        var i     = 0;
+
+        while(data[i].trim() != 'NODE_COORD_SECTION')
+        {
+            var metaTmp = data[i++].trim().split(': ');
+            metaData[metaTmp[0]] = metaTmp[1];
+        }
+        i++; // Skip NODE_COORD_SECTION
+
+        while(data[i].trim() != 'EOF')
+        {
+            var nodeTmp = data[i++].trim().split(' ');
+            nodes.push({
+                longitude: nodeTmp[1],
+                latitude: nodeTmp[2]
+            })
+        }
+
+        _.forEach(nodes, function(outerNode){
+            _.forEach(nodes, function(innerNode){
+                var weight = 0;
+
+                if(outerNode === innerNode)
+                { // Loop => Inf
+                    weight = Infinity;
+                }else{
+                    var lat1 = outerNode.latitude;
+                    var lat2 = innerNode.latitude;
+                    var lon1 = outerNode.longitude;
+                    var lon2 = innerNode.longitude;
+                    var R = 6371; // radius of earth
+
+                    // Distance using the haversine formula
+                    var dLat = (lat2-lat1) * Math.PI / 180;
+                    var dLon = (lon2-lon1) * Math.PI / 180;
+                    lat1 = lat1 * Math.PI / 180;
+                    lat2 = lat2 * Math.PI / 180;
+
+                    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    var d = (R * c);
+
+                    // Spherical Law of Cosines
+                    /*
+                    var d = Math.acos(Math.sin(lat1) * Math.sin(lat2) +
+                            Math.cos(lat1)           * Math.cos(lat2) *
+                            Math.cos(lon2-lon1))     * R;
+                    */
+
+                    weight = parseInt(d);
+                }
+                graph.push(weight);
+            });
+        });
+
+        return true;
+    }
+
+    return {
+        parse: function(){ parse(); return this; }
+        ,getGraph: function(){ return graph; }
+        ,getMetadata: function(){ return metaData; }
+    };
+}
+
 /**
  * Convert a graph representation to a Node-Edge-Node based Network.
  *
- * @param graph
- * @returns {{getNetwork: Function}}
  * @constructor
  */
-function GraphNetwork(graph)
+function GraphNetwork()
 {
     /**
      * Representation of an Vertice/Node inside our graph.
@@ -192,7 +277,7 @@ function GraphNetwork(graph)
         return verticeArray;
     }
 
-    var network = createNetwork(graph);
+    //var network = createNetwork(graph);
 
     return {
         /**
@@ -200,8 +285,15 @@ function GraphNetwork(graph)
          *
          * @returns {*}
          */
-        getNetwork: function(){
-            return network;
+        createNetworkFromGraph: function(graph) {
+            return createNetwork(graph);
+        }
+
+        ,createNetworkFromTSP: function(tspData) {
+            var parser = new TSPParser(tspData);
+            var graph  = parser.parse().getGraph();
+
+            return createNetwork(graph);
         }
     }
 }
@@ -347,16 +439,48 @@ function TSM(network)
     };
 }
 
-var Problem = new GraphNetwork([
-    Infinity, 906, 814, 30, 198,
-    906, Infinity, 633, 225, 103,
-    814, 633, Infinity, 462, 553,
-    30, 225, 462, Infinity, 814,
-    198, 103, 553, 814, Infinity
-]);
+var GN = new GraphNetwork();
 
 // Init our TSM and solve it
-var ProblemSolver = new TSM(Problem.getNetwork());
+/*var ProblemSolver = new TSM(GN.createNetworkFromGraph([
+    Inf, 906, 814,  30, 198,  20,  110,
+    906, Inf, 633, 225, 103,  30,  221,
+    814, 633, Inf, 462, 553,  40,  332,
+    30, 225, 462, Inf, 814,  50,  443,
+    198, 103, 553, 814, Inf,  60,  554,
+    20,  30,  40,  50,  60, Inf,  665,
+    110, 221, 332,  43, 554, 665,  Inf
+]));*/
+
+var Network = GN.createNetworkFromTSP(
+"NAME: ulysses16.tsp\n\
+TYPE: TSP\n\
+COMMENT: Odyssey of Ulysses (Groetschel/Padberg)\n\
+DIMENSION: 16\n\
+EDGE_WEIGHT_TYPE: GEO\n\
+DISPLAY_DATA_TYPE: COORD_DISPLAY\n\
+NODE_COORD_SECTION\n\
+1 38.24 20.42\n\
+2 39.57 26.15\n\
+3 40.56 25.32\n\
+4 36.26 23.12\n\
+5 33.48 10.54\n\
+6 37.56 12.19\n\
+7 38.42 13.11\n\
+8 37.52 20.44\n\
+9 41.23 9.10\n\
+10 41.17 13.05\n\
+11 36.08 -5.21\n\
+12 38.47 15.13\n\
+13 38.15 15.35\n\
+14 37.51 15.17\n\
+15 35.49 14.32\n\
+16 39.36 19.56\n\
+EOF"
+);
+
+var ProblemSolver = new TSM(Network);
+
 ProblemSolver.toggleDebug();
 ProblemSolver.solve(0);
 
@@ -367,3 +491,10 @@ _.forEach(ProblemSolver.getBestPath(), function(node){
 });
 console.log('bestCost: ', ProblemSolver.getBestCost());
 console.log('bestPath: ', printPath);
+
+/**
+ * TODO
+ * Split the Problem, so we can have multiple solver.
+ * Create the real worker application.
+ * Create the "master server" frontend.
+ */
