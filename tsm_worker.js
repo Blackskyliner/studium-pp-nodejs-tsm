@@ -179,7 +179,7 @@ function GraphNetwork(graph)
         // wire edges
         for(var v in verticeArray)
         {
-            for(e in verticeArray[v].getEdges())
+            for(var e in verticeArray[v].getEdges())
             {
                 verticeArray[v].getEdge(e).createConnection(verticeArray[v], verticeArray[e])
             }
