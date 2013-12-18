@@ -11,7 +11,7 @@ server.configure(function(){
     server.set('view options', { layout: false });
     server.use(connect.bodyParser());
     server.use(express.cookieParser());
-    server.use(express.session({ secret: "shhhhhhhhh!"}));
+    server.use(express.session({ secret: "ckppsippbps"}));
     server.use(connect.static(__dirname + '/static'));
     server.use(server.router);
 });
@@ -23,15 +23,13 @@ server.error(function(err, req, res, next){
                   title : '404 - Not Found'
                  ,description: ''
                  ,author: ''
-                 ,analyticssiteid: 'XXXXXXX' 
                 },status: 404 });
     } else {
         res.render('500.jade', { locals: { 
                   title : 'The Server Encountered an Error'
                  ,description: ''
                  ,author: ''
-                 ,analyticssiteid: 'XXXXXXX'
-                 ,error: err 
+                 ,error: err
                 },status: 500 });
     }
 });
@@ -60,10 +58,9 @@ io.sockets.on('connection', function(socket){
 server.get('/', function(req,res){
   res.render('index.jade', {
     locals : { 
-              title : 'Your Page Title'
-             ,description: 'Your Page Description'
-             ,author: 'Your Name'
-             ,analyticssiteid: 'XXXXXXX' 
+              title : 'Parallel Programming - Partial summation test'
+             ,description: 'Testing NodeJS for Partial Programming'
+             ,author: 'Christoph Kretzschmar'
             }
   });
 });
