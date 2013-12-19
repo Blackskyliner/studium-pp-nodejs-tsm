@@ -1,5 +1,7 @@
-var util = require('util');
-var _    = require('lodash-node');
+var util      = require('util');
+var _         = require('lodash-node');
+var Benchmark = require('benchmark');
+var microtime = require('microtime');
 
 var Inf = Infinity;
 
@@ -522,6 +524,30 @@ NODE_COORD_SECTION\n\
 16 39.36 19.56\n\
 EOF"
 );
+//*/
+
+/*
+var suite = new Benchmark.Suite;
+
+suite.add('TSM Solver with Cutting', function(){
+    var ProblemSolver = new TSM(Network);
+    ProblemSolver.solve(0);
+});
+
+suite.add('TSM Solver without Cutting', function(){
+    var ProblemSolver = new TSM(Network);
+    ProblemSolver.toggleCutting();
+    ProblemSolver.solve(0);
+});
+
+suite.on('cycle', function(event) {
+    console.log(String(event.target));
+})
+.on('complete', function() {
+    console.log('Fastest is ' + this.filter('fastest').pluck('name'));
+});
+
+suite.run({async: false});
 //*/
 
 
