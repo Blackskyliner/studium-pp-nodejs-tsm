@@ -7,4 +7,8 @@ test:
 			--slow 20 \
 			--growl \
 			$(TESTS)
+worker:
+	node tsm_worker.js
+server:
+	node server.js
 .PHONY: test
