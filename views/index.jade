@@ -1,0 +1,15 @@
+extends layout
+block content
+    div
+        div.row
+            label(for='lowerBound')='Lower Bound: '
+            input(id='lowerBound', value=0)
+        div.row
+            label(for='upperBound')='Upper Bound: '
+            input(id='upperBound', value=10000)
+        div.row
+            label(for='formula')='Formula: '
+            input(id='formula', value='i')
+    div
+        button(id='sender')='Proccess Formula'
+    ul(id='receiver')
