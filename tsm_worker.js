@@ -3,6 +3,16 @@ var _    = require('lodash-node');
 
 var Inf = Infinity;
 
+function nodePathToNamePath(s)
+{
+    var path = [];
+    _.forEach(s, function(si){
+        if(si)
+            path.push(si.getName());
+    });
+    return path;
+}
+
 /**
  * This Parser can read in any .tsp file and output an graph for it.
  *
@@ -317,7 +327,21 @@ function TSM(network)
         ,cost: Infinity
     };
 
+    /**
+     * Defines if we want to print debug messages.
+     *
+     * @type {boolean}
+     * @private
+     */
     var _debug = false;
+
+    /**
+     * Defines whether we want the best-cost cutting or not.
+     *
+     * @type {boolean}
+     * @private
+     */
+    var _cutting = true;
 
     /**
      * Calculates the cost for the given path through the edge weights.
@@ -351,17 +375,23 @@ function TSM(network)
     {
         var currentNode = network[start];       // x = network.length;
         var s = [];                             // current path                   ; dimension: x
-        var v = [[]];                           // visited nodes for each layer   ; dimension: x * x
+        var v = [];                             // visited nodes for each layer   ; dimension: x * x
         var u = [];                             // unvisited nodes                ; dimension: x
         var d = 0;                              // current depth                  ; min: 0 ; max: x
 
-        // Push our root path
+        // Push our root path and its already visited nodes
         s.push(currentNode);
+        v.push([]);
 
         while(s.length > 0)
         {
             //u = currentNode.edges - v;
             u = []; // empty unvisited nodes, as we generate them now
+            if(_cutting)
+            {
+                var currentPathCosts = calculatePathCosts(s);
+            }
+
             _.forEach(currentNode.getEdges(), function(edge){
                 if(edge.getWeight() === Infinity)
                     return; // filter impossible edges (loop or cut)
@@ -374,7 +404,17 @@ function TSM(network)
                     if(s[currentPathNodes_idx] === edge.getDestination())
                         return; // they are our parents, so we visited them already
 
-                u.push(edge.getDestination()); // it is not visited
+                if(_cutting)
+                {
+                    if((currentPathCosts + edge.getWeight()) >= bestCosts.cost)
+                    {
+                        v[d].push(edge.getDestination()); // cut suboptimal path
+                    }else{
+                        u.push(edge.getDestination()); // it is not visited
+                    }
+                }else{
+                    u.push(edge.getDestination()); // it is not visited
+                }
             });
 
             if(u.length > 0)
@@ -435,24 +475,28 @@ function TSM(network)
         /**
          * Will enable debugging output
          */
-        ,toggleDebug: function(){_debug = !_debug;}
+        ,toggleDebug: function(){_debug = !_debug; return _debug;}
+        /**
+         * Toggle cutting
+         * @returns {boolean}
+         */
+        ,toggleCutting: function(){_cutting = !_cutting; return _cutting;}
     };
 }
 
 var GN = new GraphNetwork();
 
 // Init our TSM and solve it
-/*var ProblemSolver = new TSM(GN.createNetworkFromGraph([
-    Inf, 906, 814,  30, 198,  20,  110,
-    906, Inf, 633, 225, 103,  30,  221,
-    814, 633, Inf, 462, 553,  40,  332,
-    30, 225, 462, Inf, 814,  50,  443,
-    198, 103, 553, 814, Inf,  60,  554,
-    20,  30,  40,  50,  60, Inf,  665,
-    110, 221, 332,  43, 554, 665,  Inf
-]));*/
+var Network = GN.createNetworkFromGraph([
+    Inf, 906, 814,  30, 198,
+    906, Inf, 633, 225, 103,
+    814, 633, Inf, 462, 553,
+    30, 225, 462, Inf, 814,
+    198, 103, 553, 814, Inf
+]);
+//*/
 
-var Network = GN.createNetworkFromTSP(
+/*var Network = GN.createNetworkFromTSP(
 "NAME: ulysses16.tsp\n\
 TYPE: TSP\n\
 COMMENT: Odyssey of Ulysses (Groetschel/Padberg)\n\
@@ -478,19 +522,18 @@ NODE_COORD_SECTION\n\
 16 39.36 19.56\n\
 EOF"
 );
+//*/
+
 
 var ProblemSolver = new TSM(Network);
-
 ProblemSolver.toggleDebug();
 ProblemSolver.solve(0);
+//*/
 
 // Print the solution
-var printPath = [];
-_.forEach(ProblemSolver.getBestPath(), function(node){
-    printPath.push(node.getName());
-});
 console.log('bestCost: ', ProblemSolver.getBestCost());
-console.log('bestPath: ', printPath);
+console.log('bestPath: ', nodePathToNamePath(ProblemSolver.getBestPath()));
+//*/
 
 /**
  * TODO
