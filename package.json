@@ -1,19 +1,22 @@
 {
-  "name": "YOUR-PROJECT-NAME-HERE",
-  "description": "YOUR PROJECT DESCRIPTION HERE",
-  "author": "YOUR NAME <your@emailaddress.com>",
+  "name": "studium-pp-nodejs-tsm",
+  "description": "Solving the Traveling Salesman Problem through NodeJS in a parallel environment.",
+  "author": "Blackskyliner <blackskyliner@googlemail.com>",
   "version": "0.0.1",
   "dependencies": {
     "connect": "1.8.5",
     "express": "2.5.2",
     "jade": "0.20.0",
     "mongoose": "2.4.8",
-    "socket.io": "0.8.7"
+    "socket.io": "0.8.7",
+    "lodash-node": "2.4.1"
   },
   "devDependencies": {
     "vows": "0.5.x",
-	"mocha": "*",
-	"should": "*"
+    "mocha": "*",
+    "should": "*",
+    "benchmark": "1.0.0",
+    "microtime": "0.5.1"
   },
   "engine": "node >= 0.6.6"
 }
