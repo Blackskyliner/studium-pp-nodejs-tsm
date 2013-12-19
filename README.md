@@ -3,6 +3,10 @@ NodeJS Parallel Travelling Salesman Solver
 
 This is an repository documenting my progress ot develop an TSM solver on top of NodeJS and Websockets to create an parallel processing system with modern Webtechnologies.
 
+It is meant to get a grasp on how parallel programming works in gerneral and if this can be used in modern web applications. 
+
+There may be some kind of a resulting framework which will make it easy to share time/memory consuming processes among several worker nodes.
+
 
 Architecture
 ============
@@ -34,7 +38,8 @@ The worker got:
 	
 The network will be generated out of the given tsm-problem and therefore should be equal on every worker
 
-The bestCost value is shared among all worker through 
+The bestCost value is shared among all worker: If one worker finds a better value than the global, it will announce this to the server. The server will then send the new value to all other workers.
+ 
 
 
 Installation
