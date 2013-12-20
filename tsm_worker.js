@@ -346,6 +346,14 @@ function TSM(network)
     var _cutting = true;
 
     /**
+     * Defines whether we want the min heuristic or not.
+     *
+     * @type {boolean}
+     * @private
+     */
+    var _min_heuristic = true;
+
+    /**
      * Calculates the cost for the given path through the edge weights.
      *
      * @param s path
@@ -423,6 +431,14 @@ function TSM(network)
             { // traverse unvisited
                 v[++d] = []; // reset visited nodes for comming layer
 
+                if(_min_heuristic)
+                { // Sort by min path
+                    u = _.sortBy(u, function(ou){
+                        return ou.findEdgeTo(currentNode).getWeight();
+                    });
+                    //console.log(nodePathToNamePath(u));
+                }
+
                 // get the first unvisited and push onto our path
                 currentNode = u.shift();
                 s.push(currentNode);
@@ -483,6 +499,11 @@ function TSM(network)
          * @returns {boolean}
          */
         ,toggleCutting: function(){_cutting = !_cutting; return _cutting;}
+        /**
+         * Toggle min path descending heuristic
+         * @returns {boolean}
+         */
+        ,toggleMinHeuristic: function(){_min_heuristic = !_min_heuristic; return _min_heuristic;}
     };
 }
 
@@ -529,14 +550,27 @@ EOF"
 /*
 var suite = new Benchmark.Suite;
 
-suite.add('TSM Solver with Cutting', function(){
+suite.add('TSM Solver (cutting, min)', function(){
     var ProblemSolver = new TSM(Network);
     ProblemSolver.solve(0);
 });
 
-suite.add('TSM Solver without Cutting', function(){
+suite.add('TSM Solver (cutting)', function(){
+    var ProblemSolver = new TSM(Network);
+    ProblemSolver.toggleMinHeuristic();
+    ProblemSolver.solve(0);
+});
+
+suite.add('TSM Solver (min)', function(){
     var ProblemSolver = new TSM(Network);
     ProblemSolver.toggleCutting();
+    ProblemSolver.solve(0);
+});
+
+suite.add('TSM Solver', function(){
+    var ProblemSolver = new TSM(Network);
+    ProblemSolver.toggleCutting();
+    ProblemSolver.toggleMinHeuristic();
     ProblemSolver.solve(0);
 });
 
