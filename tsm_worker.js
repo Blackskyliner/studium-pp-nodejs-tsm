@@ -414,15 +414,19 @@ function TSM(network)
                     if(s[currentPathNodes_idx] === edge.getDestination())
                         return; // they are our parents, so we visited them already
 
+                var unvisited = true;
+
                 if(_cutting)
                 {
                     if((currentPathCosts + edge.getWeight()) >= bestCosts.cost)
                     {
                         v[d].push(edge.getDestination()); // cut suboptimal path
-                    }else{
-                        u.push(edge.getDestination()); // it is not visited
+                        unvisited = false;
                     }
-                }else{
+                }
+
+                if(unvisited)
+                {
                     u.push(edge.getDestination()); // it is not visited
                 }
             });
