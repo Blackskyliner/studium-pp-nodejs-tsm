@@ -15,6 +15,17 @@ function nodePathToNamePath(s)
     return path;
 }
 
+function getTimeDifference(begin, end)
+{
+    var calculated = [
+        end[0]-begin[0]+((end[1]-begin[1])/1000000) // seconds
+    ];
+    calculated.push(calculated[0]/60); // minutes
+    calculated.push(calculated[1]/60); // hours
+
+    return calculated;
+}
+
 /**
  * This Parser can read in any .tsp file and output an graph for it.
  *
@@ -476,8 +487,16 @@ function TSM(network)
                     printPath.push(node.getName());
                 });
 
-                if(_debug)
-                    console.log('Found Path: ', printPath, 'Cost: ', calculatePathCosts(s));
+                if(_debug){
+                    var calculated = getTimeDifference(startTime, microtime.nowStruct());
+                    console.log(
+                        'Found Path: ', printPath,
+                        'Cost: ', calculatePathCosts(s),
+                        'Time: ',
+                            'hours', calculated[2].toFixed(8),
+                            'minutes', calculated[1].toFixed(8),
+                            'seconds', calculated[0].toFixed(8));
+                }
             }
         }
     }
@@ -552,6 +571,8 @@ EOF"
 //*/
 
 /*
+var startTime = microtime.nowStruct();
+
 var suite = new Benchmark.Suite;
 
 suite.add('TSM Solver (cutting, min)', function(){
@@ -587,18 +608,40 @@ suite.on('cycle', function(event) {
 
 suite.run({async: false});
 //*/
+var endTime = microtime.nowStruct();
 
+var calculated = getTimeDifference(startTime, endTime);
+console.log(
+    'Benchmarktime: ',
+        'start', startTime,
+        'end',endTime,
+        'hours', calculated[2],
+        'minutes', calculated[1],
+        'seconds', calculated[0]
+);
 
+console.log('Now one debugging round (all optimizations turned on).');
+startTime = microtime.nowStruct();
 var ProblemSolver = new TSM(Network);
 ProblemSolver.toggleDebug();
 ProblemSolver.solve(0);
 //*/
+endTime = microtime.nowStruct();
+
 
 // Print the solution
 console.log('bestCost: ', ProblemSolver.getBestCost());
 console.log('bestPath: ', nodePathToNamePath(ProblemSolver.getBestPath()));
 //*/
 
+calculated = getTimeDifference(startTime, endTime);
+console.log(
+    'start', startTime,
+    'end',endTime,
+    'hours', calculated[2],
+    'minutes', calculated[1],
+    'seconds', calculated[0]
+);
 /**
  * TODO
  * Split the Problem, so we can have multiple solver.
