@@ -533,7 +533,7 @@ function TSM(network)
 var GN = new GraphNetwork();
 
 // Init our TSM and solve it
-var Network = GN.createNetworkFromGraph([
+/*var Network = GN.createNetworkFromGraph([
     Inf, 906, 814,  30, 198,
     906, Inf, 633, 225, 103,
     814, 633, Inf, 462, 553,
@@ -570,7 +570,6 @@ EOF"
 );
 //*/
 
-/*
 var Network = GN.createNetworkFromTSP(
 "NAME: burma14\n\
 TYPE: TSP\n\
@@ -599,7 +598,7 @@ EOF");
 
 var startTime = microtime.nowStruct();
 
-var suite = new Benchmark.Suite;
+/*var suite = new Benchmark.Suite;
 
 suite.add('TSM Solver (cutting, min)', function(){
     var ProblemSolver = new TSM(Network);
@@ -634,6 +633,7 @@ suite.on('cycle', function(event) {
 
 suite.run({async: false});
 //*/
+
 var endTime = microtime.nowStruct();
 
 var calculated = getTimeDifference(startTime, endTime);
@@ -646,9 +646,34 @@ console.log(
         'seconds', calculated[0]
 );
 
-console.log('Now one debugging round (all optimizations turned on).');
+
+console.log('Running with (cutting)');
 startTime = microtime.nowStruct();
 var ProblemSolver = new TSM(Network);
+ProblemSolver.toggleMinHeuristic();
+ProblemSolver.toggleDebug();
+ProblemSolver.solve(0);
+//*/
+endTime = microtime.nowStruct();
+
+// Print the solution
+console.log('bestCost: ', ProblemSolver.getBestCost());
+console.log('bestPath: ', nodePathToNamePath(ProblemSolver.getBestPath()));
+//*/
+
+calculated = getTimeDifference(startTime, endTime);
+console.log(
+    'start', startTime,
+    'end',endTime,
+    'hours', calculated[2],
+    'minutes', calculated[1],
+    'seconds', calculated[0]
+);
+
+
+console.log('Running with (min,cutting)');
+startTime = microtime.nowStruct();
+ProblemSolver = new TSM(Network);
 ProblemSolver.toggleDebug();
 ProblemSolver.solve(0);
 //*/
