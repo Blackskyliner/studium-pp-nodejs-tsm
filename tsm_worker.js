@@ -435,13 +435,64 @@ function TSM(network, startNode)
     }
 
     /**
+     * Sets the node where to start.
+     *
+     * (Calling this is only reasonable before solving the problem)
+     *
+     * @param startNode the node inside the network where we want to start
+     */
+    function setStartNode(startNode)
+    {
+        _currentNode = network[startNode];
+    }
+
+    /**
+     * This function is used to define a partial problem which then gets solved.
+     * Every Path which would be some kind of parent will be marked as already solved.
+     *
+     * @param {Array} path The path where to start solving the problem.
+     */
+    function setPartialProblem(path)
+    {
+        // Set the current path
+        _.forEach(path, function(pathValue){
+            _s.push(network[pathValue - 1]);
+            _d++;
+        });
+
+        // Set all nodes visited, prior to our problem/depth. (we just want to solve our sub-tree)
+        _.forEach(path, function(pathValue, idx){
+            var currentDepthNode = network[pathValue - 1]; // get the corresponding node
+            var nextDepthNode = network[path[idx + 1] - 1];
+            var adjacentNodes = currentDepthNode.getVertices();
+
+            if(nextDepthNode !== undefined)
+            {
+                // add all paths to visited which are siblings of the parents of our partial problem path
+                _v.push(_.filter(adjacentNodes, function(node){
+                    return node != nextDepthNode;
+                }));
+            }else{
+                // Set all adjacent nodes (siblings) for our current node as visited, as we just want to visit its children
+                _v.push(adjacentNodes)
+            }
+        });
+
+        _v.push([]); // The Visited Nodes for our current depth
+        _currentNode = network[path.pop()-1]; // Set the current node of the path node
+    }
+
+    /**
      * Solve the TSM-Problem through an iterative backtracking.
      */
     function solve()
     {
         // Push our root path and its already visited nodes if we do not have some prepared path (sub-tree solving)
-        _s.push(_currentNode);
-        _v.push([]);
+        if(_s.length === 0)
+        {
+            _s.push(_currentNode);
+            _v.push([]);
+        }
 
         while(_s.length > 0)
         {
@@ -539,7 +590,9 @@ function TSM(network, startNode)
     }
 
     return {
-        solve: solve
+        setPartialProblem: setPartialProblem
+        ,setStartNode: setStartNode
+        ,solve: solve
         /**
          * Returns the best path found.
          * @returns {*[]}
