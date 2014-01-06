@@ -487,6 +487,9 @@ function TSM(network, startNode)
      */
     function solve()
     {
+        if(_debug){
+            var startTime = microtime.nowStruct();
+        }
         // Push our root path and its already visited nodes if we do not have some prepared path (sub-tree solving)
         if(_s.length === 0)
         {
