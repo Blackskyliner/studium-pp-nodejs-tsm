@@ -325,10 +325,11 @@ function GraphNetwork()
  * This class can solve the TSM Problem.
  *
  * @param {GraphNetwork} network description of the problem
+ * @param {number}       startNode where to start in the network
  * @returns {{solve: Function, getBestPath: Function, getBestCost: Function}}
  * @constructor
  */
-function TSM(network)
+function TSM(network, startNode)
 {
     /**
      * Will hold our best path state
@@ -365,6 +366,52 @@ function TSM(network)
     var _min_heuristic = true;
 
     /**
+     * Represents the node we are at the moment.
+     *
+     * @type {GraphNetwork.V}
+     * @private
+     */
+    var _currentNode = network[startNode - 1];
+
+    /**
+     * Represents the current path we are at (including the currentNode at the end)
+     * dimension: x
+     *
+     * @type {Array}
+     * @private
+     */
+    var _s = [];
+
+    /**
+     * Represents the visited nodes for each layer
+     * dimension: x * x
+     *
+     * @type {Array}
+     * @private
+     */
+    var _v = [];
+
+    /**
+     * Represents the unvisited nodes on all depths
+     * dimension: x
+     *
+     * While walking the tree the visited depths are not relevant, thus we reuse their index for the next depth.
+     *
+     * @type {Array}
+     * @private
+     */
+    var _u = [];
+
+    /**
+     * current depth
+     * min: 0 ; max: x
+     *
+     * @type {number}
+     * @private
+     */
+    var _d = 0;
+
+    /**
      * Calculates the cost for the given path through the edge weights.
      *
      * @param s path
@@ -389,40 +436,31 @@ function TSM(network)
 
     /**
      * Solve the TSM-Problem through an iterative backtracking.
-     *
-     * @param start the node inside the network where we want to start
      */
-    function solve(start)
+    function solve()
     {
-        var currentNode = network[start];       // x = network.length;
-        var s = [];                             // current path                   ; dimension: x
-        var v = [];                             // visited nodes for each layer   ; dimension: x * x
-        var u = [];                             // unvisited nodes                ; dimension: x
-        var d = 0;                              // current depth                  ; min: 0 ; max: x
+        // Push our root path and its already visited nodes if we do not have some prepared path (sub-tree solving)
+        _s.push(_currentNode);
+        _v.push([]);
 
-        // Push our root path and its already visited nodes
-        s.push(currentNode);
-        v.push([]);
-
-        while(s.length > 0)
+        while(_s.length > 0)
         {
-            //u = currentNode.edges - v;
-            u = []; // empty unvisited nodes, as we generate them now
+            _u = []; // empty unvisited nodes, as we generate them now
             if(_cutting)
             {
-                var currentPathCosts = calculatePathCosts(s);
+                var currentPathCosts = calculatePathCosts(_s);
             }
 
-            _.forEach(currentNode.getEdges(), function(edge){
+            _.forEach(_currentNode.getEdges(), function(edge){
                 if(edge.getWeight() === Infinity)
                     return; // filter impossible edges (loop or cut)
 
-                for(var visitedNode_idx in v[d])
-                    if(v[d][visitedNode_idx] === edge.getDestination())
+                for(var visitedNode_idx in _v[_d])
+                    if(_v[_d][visitedNode_idx] === edge.getDestination())
                         return; // it was already visited
 
-                for(var currentPathNodes_idx in s)
-                    if(s[currentPathNodes_idx] === edge.getDestination())
+                for(var currentPathNodes_idx in _s)
+                    if(_s[currentPathNodes_idx] === edge.getDestination())
                         return; // they are our parents, so we visited them already
 
                 var unvisited = true;
@@ -431,59 +469,58 @@ function TSM(network)
                 {
                     if((currentPathCosts + edge.getWeight()) >= bestCosts.cost)
                     {
-                        v[d].push(edge.getDestination()); // cut suboptimal path
+                        _v[_d].push(edge.getDestination()); // cut suboptimal path
                         unvisited = false;
                     }
                 }
 
                 if(unvisited)
                 {
-                    u.push(edge.getDestination()); // it is not visited
+                    _u.push(edge.getDestination()); // it is not visited
                 }
             });
 
-            if(u.length > 0)
+            if(_u.length > 0)
             { // traverse unvisited
-                v[++d] = []; // reset visited nodes for comming layer
+                _v[++_d] = []; // reset visited nodes for comming layer
 
                 if(_min_heuristic)
                 { // Sort by min path
-                    u = _.sortBy(u, function(ou){
-                        return ou.findEdgeTo(currentNode).getWeight();
+                    _u = _.sortBy(_u, function(ou){
+                        return ou.findEdgeTo(_currentNode).getWeight();
                     });
-                    //console.log(nodePathToNamePath(u));
                 }
 
                 // get the first unvisited and push onto our path
-                currentNode = u.shift();
-                s.push(currentNode);
+                _currentNode = _u.shift();
+                _s.push(_currentNode);
             }
             else
             { // no traversal possible
                 // Calculate Pathcosts if we are in a complete path
-                if(s.length === network.length)
+                if(_s.length === network.length)
                 {
-                    var pathCost = calculatePathCosts(s);
+                    var pathCost = calculatePathCosts(_s);
                     if(pathCost < bestCosts.cost)
                     {
                         bestCosts.cost = pathCost;
-                        bestCosts.path = _.clone(s);
+                        bestCosts.path = _.clone(_s);
                     }
                 }
 
-                if(d > 0)
+                if(_d > 0)
                 {
-                    v[--d].push(s.pop());
-                    currentNode = s[s.length-1];
+                    _v[--_d].push(_s.pop());
+                    _currentNode = _s[_s.length-1];
                 }else{ // End of tree - finish.
-                    s.pop(); // we pop our root node, so we are done.
+                    _s.pop(); // we pop our root node, so we are done.
                 }
             }
 
-            if(s.length === network.length)
+            if(_s.length === network.length)
             { // We got a complete path, print it.
                 var printPath = [];
-                _.forEach(s, function(node){
+                _.forEach(_s, function(node){
                     printPath.push(node.getName());
                 });
 
@@ -491,7 +528,7 @@ function TSM(network)
                     var calculated = getTimeDifference(startTime, microtime.nowStruct());
                     console.log(
                         'Found Path: ', printPath,
-                        'Cost: ', calculatePathCosts(s),
+                        'Cost: ', calculatePathCosts(_s),
                         'Time: ',
                             'hours', calculated[2].toFixed(8),
                             'minutes', calculated[1].toFixed(8),
@@ -601,27 +638,27 @@ var startTime = microtime.nowStruct();
 /*var suite = new Benchmark.Suite;
 
 suite.add('TSM Solver (cutting, min)', function(){
-    var ProblemSolver = new TSM(Network);
-    ProblemSolver.solve(0);
+    var ProblemSolver = new TSM(Network,1);
+    ProblemSolver.solve();
 });
 
 suite.add('TSM Solver (cutting)', function(){
-    var ProblemSolver = new TSM(Network);
+    var ProblemSolver = new TSM(Network,1);
     ProblemSolver.toggleMinHeuristic();
-    ProblemSolver.solve(0);
+    ProblemSolver.solve();
 });
 
 suite.add('TSM Solver (min)', function(){
-    var ProblemSolver = new TSM(Network);
+    var ProblemSolver = new TSM(Network,1);
     ProblemSolver.toggleCutting();
-    ProblemSolver.solve(0);
+    ProblemSolver.solve();
 });
 
 suite.add('TSM Solver', function(){
-    var ProblemSolver = new TSM(Network);
+    var ProblemSolver = new TSM(Network,1);
     ProblemSolver.toggleCutting();
     ProblemSolver.toggleMinHeuristic();
-    ProblemSolver.solve(0);
+    ProblemSolver.solve();
 });
 
 suite.on('cycle', function(event) {
@@ -649,10 +686,10 @@ console.log(
 
 console.log('Running with (cutting)');
 startTime = microtime.nowStruct();
-var ProblemSolver = new TSM(Network);
+var ProblemSolver = new TSM(Network, 1);
 ProblemSolver.toggleMinHeuristic();
 ProblemSolver.toggleDebug();
-ProblemSolver.solve(0);
+ProblemSolver.solve();
 //*/
 endTime = microtime.nowStruct();
 
@@ -673,9 +710,9 @@ console.log(
 
 console.log('Running with (min,cutting)');
 startTime = microtime.nowStruct();
-ProblemSolver = new TSM(Network);
+ProblemSolver = new TSM(Network, 1);
 ProblemSolver.toggleDebug();
-ProblemSolver.solve(0);
+ProblemSolver.solve();
 //*/
 endTime = microtime.nowStruct();
 
