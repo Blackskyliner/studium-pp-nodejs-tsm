@@ -773,6 +773,18 @@ ProblemSolver.solve();
 endTime = microtime.nowStruct();
 
 
+// Partial Test
+console.log('Running partial without (min,cutting)');
+startTime = microtime.nowStruct();
+ProblemSolver = new TSM(Network, 1);
+ProblemSolver.toggleMinHeuristic();
+ProblemSolver.toggleCutting();
+ProblemSolver.toggleDebug();
+ProblemSolver.setPartialProblem([1,5]);
+ProblemSolver.solve();
+endTime = microtime.nowStruct();
+//*/
+
 // Print the solution
 console.log('bestCost: ', ProblemSolver.getBestCost());
 console.log('bestPath: ', nodePathToNamePath(ProblemSolver.getBestPath()));
