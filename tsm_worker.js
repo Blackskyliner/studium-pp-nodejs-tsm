@@ -336,7 +336,7 @@ function TSM(network, startNode)
      *
      * @type {{path: [], cost: Number}}
      */
-    var bestCosts = {
+    var _bestCost = {
         path: null
         ,cost: Infinity
     };
@@ -518,7 +518,7 @@ function TSM(network, startNode)
 
                 if(_cutting)
                 {
-                    if((currentPathCosts + edge.getWeight()) >= bestCosts.cost)
+                    if((currentPathCosts + edge.getWeight()) >= _bestCost.cost)
                     {
                         _v[_d].push(edge.getDestination()); // cut suboptimal path
                         unvisited = false;
@@ -552,10 +552,10 @@ function TSM(network, startNode)
                 if(_s.length === network.length)
                 {
                     var pathCost = calculatePathCosts(_s);
-                    if(pathCost < bestCosts.cost)
+                    if(pathCost < _bestCost.cost)
                     {
-                        bestCosts.cost = pathCost;
-                        bestCosts.path = _.clone(_s);
+                        _bestCost.cost = pathCost;
+                        _bestCost.path = _.clone(_s);
                     }
                 }
 
@@ -597,12 +597,12 @@ function TSM(network, startNode)
          * Returns the best path found.
          * @returns {*[]}
          */
-        ,getBestPath: function(){return bestCosts.path;}
+        ,getBestPath: function(){return _bestCost.path;}
         /**
          * Returns the cost of the best path found.
          * @returns {Number}
          */
-        ,getBestCost: function(){return bestCosts.cost;}
+        ,getBestCost: function(){return _bestCost.cost;}
         /**
          * Will enable debugging output
          */
