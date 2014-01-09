@@ -1,11 +1,7 @@
-TESTS = test/*.js
+TESTS = test/
 
 test:
-	@NODE_ENV=test ./node_modules/.bin/mocha \
-			--require should \
-			--reporter list \
-			--slow 20 \
-			--growl \
+	@NODE_ENV=test ./node_modules/.bin/nodeunit \
 			$(TESTS)
 worker:
 	node tsm_worker.js
