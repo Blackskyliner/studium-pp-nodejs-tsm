@@ -16,7 +16,8 @@
     "mocha": "*",
     "should": "*",
     "benchmark": "1.0.0",
-    "microtime": "0.5.1"
+    "microtime": "0.5.1",
+    "nodeunit": "*"
   },
   "engine": "node >= 0.6.6"
 }
