@@ -1,5 +1,6 @@
 var tsplib    = require('../lib/tsplib.js');
 var microtime = require('microtime');
+var _         = require('lodash-node');
 
 function getTimeDifference(begin, end)
 {
@@ -132,5 +133,57 @@ exports['Solving the partial problem [1,5]'] = function (test) {
     test.deepEqual(ProblemSolver.getBestPath(), bestPath);
     test.equal(ProblemSolver.getBestCost(), bestCost);
 
+    test.done();
+};
+
+exports['Split problem and solve all trees'] = function (test) {
+    var ProblemSolver = new tsplib.TravellingSalesmanSolver(TestNetwork, 1);
+    ProblemSolver.toggleCutting();      // Disable Cutting
+    ProblemSolver.toggleMinHeuristic(); // Disable MinHeuristic
+    ProblemSolver.solve(5);             // go down a depth we know we can split some partial problems
+    var partial_problems = {
+        partial1: { // 1,5
+            problem: ProblemSolver.getPartialProblem(1),
+            assertProblemPath: [1,5],
+            assertBestPath: [1,5,2,4,3],
+            assertBestCost: 988
+        },
+        partial2: { // 1,4
+            problem: ProblemSolver.getPartialProblem(1),
+            assertProblemPath: [1,4],
+            assertBestPath: [1,4,2,5,3],
+            assertBestCost: 911
+        },
+        partial3: { // 1,3
+            problem: ProblemSolver.getPartialProblem(1),
+            assertProblemPath: [1,3],
+            assertBestPath: [1,3,4,2,5],
+            assertBestCost: 1604
+        },
+        partial4: { // []
+            problem: ProblemSolver.getPartialProblem(1),
+            assertProblemPath: null
+        }
+    };
+
+    _.forEach(partial_problems, function(problem){
+        if(problem.problem)
+        {
+            var ProblemSolver = new tsplib.TravellingSalesmanSolver(TestNetwork, 1);
+            ProblemSolver.setPartialProblem(problem.problem);
+            ProblemSolver.solve();
+
+            test.deepEqual(tsplib.Util.nodePathToNamePath(ProblemSolver.getBestPath()), problem.assertBestPath);
+            test.equal(ProblemSolver.getBestCost(), problem.assertBestCost);
+        }
+
+        test.deepEqual(problem.problem, problem.assertProblemPath);
+    });
+
+    ProblemSolver.toggleCutting();      // Enable Cutting
+    ProblemSolver.toggleMinHeuristic(); // Enable MinHeuristic
+    ProblemSolver.solve();              // solve the rest
+
+    console.log('\n\n');
     test.done();
 };
