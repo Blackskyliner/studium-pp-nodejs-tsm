@@ -1,6 +1,6 @@
 var Benchmark = require('benchmark');
 var tsplib    = require('./lib/tsplib.js');
-var suite = new Benchmark.Suite;
+var suite     = new Benchmark.Suite;
 
 var GN = new tsplib.GraphNetwork();
 var Network = GN.createNetworkFromGraph([
