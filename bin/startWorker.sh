@@ -16,5 +16,5 @@ cd ..
 for((i=1; i<=$NUMWORKER; i++))
 do
     echo "Spawn worker $i on: "$(hostname)
-    make worker > logs/$(hostname)_$i.log 2> logs/$(hostname)_$i.err &
+    node tsm_worker.js $(($STARTPORT+$i-1)) > logs/$(hostname)_$i.log 2> logs/$(hostname)_$i.err &
 done
