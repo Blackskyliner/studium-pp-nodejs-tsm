@@ -4,7 +4,7 @@ test:
 	@NODE_ENV=test ./node_modules/.bin/nodeunit \
 			$(TESTS)
 worker:
-	node tsm_worker.js
+	node tsp_worker.js
 server:
-	node server.js
+	gulp scripts && node server.js
 .PHONY: test

@@ -14,8 +14,7 @@ function getTimeDifference(begin, end)
 }
 
 // Init our Problem
-var GN = new tsplib.GraphNetwork();
-var TestNetwork = GN.createNetworkFromGraph([
+var TestNetwork = tsplib.GraphNetwork().createNetworkFromGraph([
     Infinity, 906, 814,  30, 198,
     906, Infinity, 633, 225, 103,
     814, 633, Infinity, 462, 553,

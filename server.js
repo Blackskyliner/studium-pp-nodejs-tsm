@@ -37,6 +37,8 @@ server.listen( port);
 
 //Setup Socket.IO
 var io = io.listen(server);
+io.set( 'origins', '*:*' );
+server.set( 'origins', '*:*' );
 io.sockets.on('connection', function(socket){
   console.log('Client Connected');
   socket.on('message', function(data){

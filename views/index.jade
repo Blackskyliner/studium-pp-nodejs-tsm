@@ -2,14 +2,17 @@ extends layout
 block content
     div
         div.row
-            label(for='lowerBound')='Lower Bound: '
-            input(id='lowerBound', value=0)
-        div.row
-            label(for='upperBound')='Upper Bound: '
-            input(id='upperBound', value=10000)
-        div.row
-            label(for='formula')='Formula: '
-            input(id='formula', value='i')
+            label(for='problem')='Graph: '
+            textarea(id='problem')
+                | [
+                |    Infinity, 906, 814,  30, 198,
+                |    906, Infinity, 633, 225, 103,
+                |    814, 633, Infinity, 462, 553,
+                |    30, 225, 462, Infinity, 814,
+                |    198, 103, 553, 814, Infinity
+                | ]
+
     div
-        button(id='sender')='Proccess Formula'
+        button(id='init')='Initialize Worker'
+        button(id='proccess')='Start Solving'
     ul(id='receiver')
