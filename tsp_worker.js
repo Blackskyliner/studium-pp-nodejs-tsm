@@ -25,9 +25,17 @@ var io = require('socket.io').listen(port);
 var TSPSolver = null;
 var Network   = null;
 var isStarted = false;
+var ccSocket  = null;
+var sendPartial = null;
+var currentProblem = null;
 
 io.sockets.on('connection', function (socket) {
     //socket.emit('get_problem');
+    // TODO: theoretically we could cluster nodes therefore we would have to handle more sockets
+    // But this may be some future. We could combine all local nodes to one.
+    // Because of not too many time to finish this app we will just spawn n worker with seperate ports for each worker.
+    // n will be the number of processors
+    ccSocket = socket;
 
     socket.on('init', function(data){
         // data.graph - Global Graph
@@ -53,13 +61,26 @@ io.sockets.on('connection', function (socket) {
     });
     socket.on('problem', function(data){
         // data.problem
-        TSPSolver.setPartialProblem(data.problem);
         isStarted = true;
+        currentProblem = data.problem;
+        TSPSolver.setPartialProblem(currentProblem);
+        console.log('Event.problem: ',data);
     });
     socket.on('solution', function(data){
         // data.path
         // data.cost
         TSPSolver.setBestCost(data.path, data.cost);
+        console.log('Event.solution: ',data);
+    });
+    socket.on('start', function(){
+        isStarted = true;
+        socket.emit('start', true);
+        console.log('Event.start.');
+    });
+    socket.on('split', function(data){
+        // data.depth
+        sendPartial = data;
+        console.log('Event.split: ',data);
     });
 });
 
@@ -67,17 +88,43 @@ io.sockets.on('connection', function (socket) {
 var solveFunctionThread = function(){
     if(isStarted)
     {
-        TSPSolver.solve(20);
-    }
+        if(currentProblem)
+        {
+            TSPSolver.solve(TSPSolver.getNetworkSize(), function(){
+                ccSocket.emit('solution',{
+                    path: tsplib.Util.nodePathToNamePath(TSPSolver.getBestPath()),
+                    cost: TSPSolver.getBestCost()
+                });
+            });
+        }else{
+            ccSocket.emit('problem');
+            isStarted = false;
+        }
 
-    setImmediate(
-        solveFunctionThread
-    );
+        if(TSPSolver.isFinished())
+        {
+            currentProblem = null;
+        }else{
+            if(!_.isNull(sendPartial))
+            {
+                ccSocket.emit('split', {
+                    problem: TSPSolver.getPartialProblem(sendPartial.depth)
+                });
+
+                sendPartial = null;
+            }
+        }
+
+        setImmediate(
+            solveFunctionThread
+        );
+    }else{
+        // Passively wait... else we burn our node to death with noop
+        setTimeout(solveFunctionThread, 1000);
+    }
 };
 
-setImmediate(
-    solveFunctionThread
-);
+setTimeout(solveFunctionThread, 1000);
 
 /**
  * TODO

@@ -6,5 +6,5 @@ test:
 worker:
 	node tsp_worker.js
 server:
-	gulp scripts && node server.js
+	node server.js
 .PHONY: test

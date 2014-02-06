@@ -5,11 +5,17 @@ $(document).ready(function() {
         var graph = eval($('#problem').val());
         console.log(JSON.stringify(graph));
 
-        solver =new TravellingSalesmanSolver(
+        solver = new TravellingSalesmanSolver(
             [
                 'http://localhost:20001'
+                ,'http://localhost:20002'
+                ,'http://localhost:20003'
+                ,'http://localhost:20004'
             ], graph, 1
         );
+
+
+        //$(this).prop('disabled', true);
 
         solver.init();
     });

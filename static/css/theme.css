@@ -1,4 +1,49 @@
 textarea{
-    width: 300px;
-    height: 500px;
+    width: 100px;
+    height: 300px;
+}
+#console{
+    position: fixed;
+    width: 100%;
+    height: 20%;
+    background-color: #EEEEEE;
+    bottom: 0;
+    padding: 0;
+    overflow: scroll;
+}
+
+#status{
+    position: fixed;
+    width: 50%;
+    height: 80%;
+    background-color: #EEEEEE;
+    right: 0;
+    top: 0;
+    padding: 0;
+    overflow: scroll;
+}
+
+#console span{
+    display: block;
+    margin-bottom: 5px;
+    background-color: #DDD;
+    word-break: keep-all;
+    overflow: scroll;
+}
+
+html{
+    height: 100%;
+}
+body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+div.content{
+    height: 80%;
+    width: 50%;
+    overflow: scroll;
+}
+div{
+    padding: 5px;
 }

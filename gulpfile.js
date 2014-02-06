@@ -1,11 +1,11 @@
 var gulp = require('gulp');
 var browserify = require('gulp-browserify');
 
-gulp.task('scripts', function() {
-    return gulp.src(['lib/client/js/**/*.js'])
+/*gulp.task('scripts', function() {
+    return gulp.src(['lib/client/js/** /*.js'])
         .pipe(browserify())
         .pipe(gulp.dest('static/js'));
-});
+});*/
 
 // Copy all static images
 //gulp.task('images', function() {
