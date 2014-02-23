@@ -41,7 +41,7 @@ function TravellingSalesmanSolver(processingNodes, graph, startNode){
      *
      * @type {{path: [number], cost: number}}
      */
-    var solution = null;
+    var solution = {path: [], cost: 0};
 
     var watchdogActivated = false;
 
